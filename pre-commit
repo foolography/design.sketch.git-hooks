@@ -1,6 +1,7 @@
 #!/bin/sh
 
 # pre-commit hook for Sketch files Git tracking
+# Derived from https://github.com/cloudaper/sketch-git-hooks
 
 # Set UTF-8 encoding
 export LANG=UTF-8
@@ -10,9 +11,9 @@ export PATH=/usr/local/bin:$PATH
 # Git repository absolute path
 git_root=`git rev-parse --show-toplevel`
 # Unzipped Sketch files path
-unzipped_root="$git_root/_unzipped"
+source_root="$git_root/_source"
 # Untouched Sketch files path
-untouched_root="$git_root/_untouched"
+original_root="$git_root/_original"
 
 # Array of all staged files
 git_diff=`git diff --name-only --cached | grep ".sketch$"`
@@ -28,47 +29,38 @@ else
     # Absolute Sketch file path
     sketch="$git_root/$staged_sketch"
     # Unzipped Sketch file directory path
-    unzipped_directory="$unzipped_root/$staged_sketch"
+    source_directory="$source_root/$staged_sketch"
     # Untouched Sketch file path
-    untouched_sketch="$untouched_root/$staged_sketch"
+    original_sketch="$original_root/$staged_sketch"
     # Untouched Sketch file directory path
-    untouched_directory=`dirname "$untouched_sketch"`
+    original_directory=`dirname "$original_sketch"`
 
     echo "Processing '`basename $sketch`'."
 
     # Delete existing directory
-    rm -rf "$unzipped_directory"
+    rm -rf "$source_directory"
 
     # If Sketch file wasn't deleted
     if ! git diff --summary --cached -- $staged_sketch | grep "delete" 2>&1 > /dev/null
     then
 
-      # Copy untouched Sketch file to untouched folder
-      if mkdir -p "$untouched_directory"
-      then
-        if cp "$sketch" "$untouched_sketch"
-        then
-          echo "  Untouched '`basename $sketch`' backed up."
-        else
-          echo "  Couldn't copy untouched '`basename $sketch`'."
-          exit 1
-        fi
-      else
-        echo "  Couldn't create '$untouched_root' directory."
-        exit 1
-      fi
-      # Stage untouched file
-      git add "$untouched_sketch"
+      # Stage original file
+      git add "$original_sketch"
 
       # Create directory
-      if mkdir -p "$unzipped_directory"
+      if mkdir -p "$source_directory"
       then
-        if cd "$unzipped_directory"
+        if cd "$source_directory"
         then
           # Unzip Sketch file
           if unzip -q "$sketch"
-          then
+          then            
             echo "  '`basename $sketch`' unzipped."
+            # Remove previews to avoid binary conflict.
+            if [ -e $source_directory/previews/preview.png ]; then
+              rm "$source_directory/previews/preview.png"
+              echo "  './previews/preview.png' removed."
+            fi
             # Prettify all JSON files
             for json_file in $(find . -name "*.json")
             do
@@ -79,35 +71,35 @@ else
                   echo "  '$json_file' prettified."
                 else
                   echo "  Couldn't move prettified '$json_file'."
-                  rm -rf "$unzipped_directory"
+                  rm -rf "$source_directory"
                   exit 1
                 fi
               else
                 echo "  Couldn't prettify '$json_file'."
-                rm -rf "$unzipped_directory"
+                rm -rf "$source_directory"
                 exit 1
               fi
             done
           else
             echo "  Couldn't unzip '`basename $sketch`'."
-            rm -rf "$unzipped_directory"
+            rm -rf "$source_directory"
             exit 1
           fi
           cd "$git_root"
         else
-          echo "  Couldn't change directory to '$unzipped_directory'."
+          echo "  Couldn't change directory to '$source_directory'."
           exit 1
         fi
       else
-        echo "  Couldn't create directory '$unzipped_directory'."
+        echo "  Couldn't create directory '$source_directory'."
         exit 1
       fi
     else
       rm "$sketch"
-      rm -rf "$untouched_sketch"
-      echo "  '`basename $sketch`' was removed with all unzipped and untouched data."
+      rm -rf "$original_sketch"
+      echo "  '`basename $sketch`' was removed with all unzipped data."
     fi
-    git add "$unzipped_directory/*"
+    git add "$source_directory/*"
 
     # Unstage working Sketch file
     git rm --cached "$sketch"

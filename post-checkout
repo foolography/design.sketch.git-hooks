@@ -1,6 +1,7 @@
 #!/bin/sh
 
 # post-checkout hook for Sketch files Git tracking
+# Derived from https://github.com/cloudaper/sketch-git-hooks
 
 # Set UTF-8 encoding
 export LANG=UTF-8
@@ -10,16 +11,16 @@ export PATH=/usr/local/bin:$PATH
 # Git repository absolute path
 git_root=`git rev-parse --show-toplevel`
 # Unzipped Sketch files path
-unzipped_directory_name="_unzipped"
-unzipped_root="$git_root/$unzipped_directory_name"
+source_directory_name="_source"
+source_root="$git_root/$source_directory_name"
 # Local backups directory path
 backup_root="$git_root/_backup"
 
-for unzipped_directory in $(find "$unzipped_directory_name" -type d | grep ".sketch$")
+for source_directory in $(find "$source_directory_name" -type d | grep ".sketch$")
 do
 
   # Sketch file path
-  sketch=`echo "$git_root/$unzipped_directory" | sed "s/$unzipped_directory_name\///"`
+  sketch=`echo "$git_root/$source_directory" | sed "s/$source_directory_name\///"`
   # Sketch file directory path
   sketch_directory=`dirname "$sketch"`
 
@@ -29,12 +30,12 @@ do
   then
 
     # Backup existing Sketch file
-    backup_path=`echo "$backup_root/$(date +"%Y-%m-%d-%H-%M-%S")/$unzipped_directory" | sed "s/$unzipped_directory_name\///"`
+    backup_path=`echo "$backup_root/$(date +"%Y%m%d%H%M%S")/$source_directory" | sed "s/$source_directory_name\///"`
     mkdir -p "`dirname $backup_path`"
-    mv "$sketch" "$backup_path"
+    cp "$sketch" "$backup_path"
 
-    # Zip the directory to recreate the Sketch file
-    cd "$unzipped_directory"
+    # Zip the directory to update the Sketch file
+    cd "$source_directory"
     if zip -rq "$sketch" *
     then
       echo "  '`basename $sketch`' Sketch file generated."
