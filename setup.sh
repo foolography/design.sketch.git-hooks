@@ -16,12 +16,15 @@ then
   for hook in post-checkout post-merge pre-commit
   do
     if cp ""`dirname $0`"/$hook" "$hook_directory"
-    then echo "$hook file copied."
-    else echo "Could not copy $hook file."
-    fi
-    if chmod +x "$hook_directory/$hook"
-    then echo "$hook file made executable."
-    else echo "Could not make $hook file executable."
+    then
+      if chmod +x "$hook_directory/$hook"
+      then 
+        echo "$hook file copied and made executable."
+      else 
+        echo "Could not make $hook file executable."
+      fi
+    else 
+      echo "Could not copy $hook file."
     fi
   done
 fi
