@@ -15,6 +15,7 @@ source_directory_name="_source"
 source_root="$git_root/$source_directory_name"
 # Local backups directory path
 backup_root="$git_root/_backup"
+backup_date=$(date +%Y%m%d-%H%M%S)
 
 for source_directory in $(find "$source_directory_name" -type d | grep ".sketch$")
 do
@@ -30,7 +31,7 @@ do
   then
 
     # Backup existing Sketch file
-    backup_path=`echo "$backup_root/$(date +"%Y%m%d%H%M%S")/$source_directory" | sed "s/$source_directory_name\///"`
+    backup_path=`echo "$backup_root/$backup_date/$source_directory" | sed "s/$source_directory_name\///"`
     mkdir -p "`dirname $backup_path`"
     cp "$sketch" "$backup_path"
 

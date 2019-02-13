@@ -12,8 +12,6 @@ export PATH=/usr/local/bin:$PATH
 git_root=`git rev-parse --show-toplevel`
 # Unzipped Sketch files path
 source_root="$git_root/_source"
-# Untouched Sketch files path
-original_root="$git_root/_original"
 
 # Array of all staged files
 git_diff=`git diff --name-only --cached | grep ".sketch$"`
@@ -30,10 +28,6 @@ else
     sketch="$git_root/$staged_sketch"
     # Unzipped Sketch file directory path
     source_directory="$source_root/$staged_sketch"
-    # Untouched Sketch file path
-    original_sketch="$original_root/$staged_sketch"
-    # Untouched Sketch file directory path
-    original_directory=`dirname "$original_sketch"`
 
     echo "Processing '`basename $sketch`'."
 
