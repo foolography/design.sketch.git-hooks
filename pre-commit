@@ -38,9 +38,6 @@ else
     if ! git diff --summary --cached -- $staged_sketch | grep "delete" 2>&1 > /dev/null
     then
 
-      # Stage original file
-      git add "$original_sketch"
-
       # Create directory
       if mkdir -p "$source_directory"
       then
@@ -90,7 +87,6 @@ else
       fi
     else
       rm "$sketch"
-      rm -rf "$original_sketch"
       echo "  '`basename $sketch`' was removed with all unzipped data."
     fi
     git add "$source_directory/*"
