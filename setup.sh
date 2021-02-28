@@ -4,8 +4,8 @@ export LANG=UTF-8
 # Needed to work in SourceTree
 export PATH=/usr/local/bin:$PATH
 
-# Git repository absolute path
-git_root=`git rev-parse --show-toplevel`
+# Parent git repository absolute path
+git_root=`git rev-parse --show-superproject-working-tree`
 # Hook files path
 hook_directory="$git_root/.git/hooks"
 
